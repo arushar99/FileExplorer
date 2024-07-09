@@ -1,0 +1,211 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>File Browser</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.21.1/dist/axios.min.js"></script>
+    <style>
+        #file-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+            #file-list li {
+                padding: 10px;
+                border-bottom: 1px solid #ccc;
+            }
+
+                #file-list li:last-child {
+                    border-bottom: none;
+                }
+    </style>
+</head>
+<body>
+    <h1>File Browser</h1>
+
+
+    <button id="home-btn" class="button">Home</button>
+    <button id="back-btn" class="button"><i>&larr;</i></button> 
+    <input type="search" id="search" placeholder="Search for files and folders">
+
+
+    <button id="search-btn">Search</button>
+    <ul id="file-list"></ul>
+    <input type="file" id="file-input" />
+    <button id="upload-btn">Upload</button>
+
+
+    <script>
+        const searchInput = document.getElementById('search');
+        const homeBtn = document.getElementById('home-btn');
+        const backBtn = document.getElementById('back-btn');
+        const searchBtn = document.getElementById('search-btn');
+        const fileList = document.getElementById('file-list');
+        const fileInput = document.getElementById('file-input');
+        const uploadBtn = document.getElementById('upload-btn');
+
+        let currentPath = '';
+
+        searchBtn.addEventListener('click', () => {
+            const query = searchInput.value;
+            axios.get(`api/directory/search?item=${query}&path=${currentPath}`)
+                .then(response => {
+                    console.log(response);
+                    fileList.innerHTML = '';
+                    parseData(response);
+                })
+                .catch(error => {
+                    alert(error.message);
+                });
+        });
+
+        uploadBtn.addEventListener('click', () => {
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            axios.post(`api/directory/upload?path=${currentPath}`, formData)
+                .then(response => {
+                    console.log(response);
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        });
+
+        homeBtn.addEventListener('click', () => {
+            axios.get('api/directory')
+                .then(response => {
+                    currentPath = '';
+                    console.log(response);
+                    fileList.innerHTML = '';
+                    parseData(response);
+                })
+                .catch(error => {
+                    alert(error.message);
+                });
+        });
+
+        backBtn.addEventListener('click', () => {
+            let backPath = '';
+            if (backPath != null) {
+                backPath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+                currentPath = backPath.substring(0, backPath.lastIndexOf('/'));
+            }
+
+            axios.get(`api/directory?&path=${backPath}`)
+                .then(response => {
+                    console.log(response);
+                    fileList.innerHTML = '';
+                    parseData(response);
+                })
+                .catch(error => {
+                    alert(error.message);
+                });
+        });
+
+        axios.get('api/directory')
+            .then(response => {
+                currentPath = '';
+                console.log(response);
+                fileList.innerHTML = '';
+                parseData(response);
+            })
+            .catch(error => {
+                alert(error.message);
+            });
+
+        function parseData(response) {
+            console.log("Returned response.path: " + response.data.path);
+            //set current path
+            if (response.data.path != null) {
+                if (currentPath == '') {
+                    console.log("Setting new");
+                    currentPath = response.data.path;
+                } else {
+                    console.log("adding to new one " + currentPath);
+                    currentPath = currentPath + "/" + response.data.path;
+                }
+
+            }
+            console.log("current path: " + currentPath);
+            //FILES
+            const files = response.data.files;
+            //FILES ITEMS
+            const fileItems = document.createElement('li');
+            fileItems.textContent = "Files" + "(count: " + response.data.fileCount + ")";
+            const ulFileItems = document.createElement('ul');
+            files.forEach((file) => {
+
+                const fileItems = document.createElement('li');
+
+                fileItems.textContent = file.name + " Size: " + file.size + " bytes  ||   ";
+
+                addDownloadBtn(fileItems, file.name);
+
+
+                ulFileItems.appendChild(fileItems);
+            });
+            //APPEND UL to FILES LI
+            fileItems.appendChild(ulFileItems);
+            //APPEND FILES LI TO UPPER UL
+            fileList.appendChild(fileItems);
+
+            //FOLDERS
+            const folders = response.data.folders;
+            //FOLDERS ITEMS
+            const folderItems = document.createElement('li');
+            //ADD FOLDER COUNT
+
+            folderItems.textContent = "Folders" + "(count: " + response.data.folderCount + ")";
+            const ulFolderItems = document.createElement('ul');
+
+            folders.forEach((folder) => {
+
+                const folderItems = document.createElement('li');
+
+                folderItems.textContent = folder.name + ", Size: " + folder.size + " bytes ";
+
+                ulFolderItems.appendChild(folderItems);
+            });
+            //APPEND UL TO FOLDERS LI
+            folderItems.appendChild(ulFolderItems);
+            //APPEND FOLDER LI TO UPPER UL
+            fileList.appendChild(folderItems);
+        }
+
+        click: function addDownloadBtn(parentElement, name) {
+            const downloadBtn = document.createElement("button");
+            downloadBtn.innerHTML = 'download';
+            downloadBtn.onclick = function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                downloadContent(name);
+            }
+
+            parentElement.appendChild(downloadBtn);
+        }
+
+
+        function downloadContent(itemName) {
+            let fullItemPath = itemName;
+
+            if (currentPath != '') {
+                fullItemPath = currentPath + "/" + itemName;
+            }
+            axios.get(`api/directory/download?path=${fullItemPath}`)
+                .then(response => {
+                //    console.log(response);
+                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', itemName);
+                    document.body.appendChild(link);
+                    link.click();
+                })
+                .catch(error => {
+                    alert(error);
+                });
+        }
+    </script>
+</body>
+</html>

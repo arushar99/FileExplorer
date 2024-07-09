@@ -1,0 +1,37 @@
+{
+  "Version": 1,
+  "Hash": "RJZ+DG/gdtoAUZLMDP9kbOE+Iq7di5yzu6grp6mhLLQ=",
+  "Source": "FileBrowser",
+  "BasePath": "_content/FileBrowser",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "FileBrowser\\wwwroot",
+      "Source": "FileBrowser",
+      "ContentRoot": "D:\\VS\\wwwroot\\",
+      "BasePath": "_content/FileBrowser",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "D:\\VS\\wwwroot\\index.html",
+      "SourceId": "FileBrowser",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\VS\\wwwroot\\",
+      "BasePath": "_content/FileBrowser",
+      "RelativePath": "index.html",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\index.html"
+    }
+  ]
+}
